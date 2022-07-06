@@ -10,7 +10,7 @@ A builder for Source Maps (revision 3).
 ```elm
 import SourceMap
 
-(SourceMap.empty
+SourceMap.empty
   |> SourceMap.withFile "elm.min.js"
   |> SourceMap.addMapping
       { generatedLine = 1
@@ -21,7 +21,7 @@ import SourceMap
       , name = Just "init"
       }
   |> SourceMap.encode
-  |> Json.Encode.encode 2)
+  |> Json.Encode.encode 2
 
 {-->
 
