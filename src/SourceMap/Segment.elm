@@ -3,9 +3,10 @@ module SourceMap.Segment exposing (Segment(..), toString)
 import VLQ
 
 
+{-| We're not using the length-1 constructor that only contains generatedStartColumn!
+-}
 type Segment
-    = Col { generatedStartColumn : Int }
-    | ColSource
+    = ColSource
         { generatedStartColumn : Int
         , sourceIndex : Int
         , originalStartLine : Int
@@ -24,9 +25,6 @@ toString : Segment -> String
 toString segment =
     VLQ.encode <|
         case segment of
-            Col r ->
-                [ r.generatedStartColumn ]
-
             ColSource r ->
                 [ r.generatedStartColumn
                 , r.sourceIndex
