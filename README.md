@@ -3,7 +3,10 @@
 A builder for Source Maps (revision 3).
 
 * [Spec](https://docs.google.com/document/d/1U1RGAehQwRypUTovF1KRlpiOFze0b-_2gc6fAH0KY0k/edit)
-* [`mozilla/source-map`](https://github.com/mozilla/source-map) reference JS implementation
+* [`mozilla/source-map`](https://github.com/mozilla/source-map): reference JS implementation
+
+Source Map is a collection of mappings from a generated (often minified) file to 
+the original source code (across multiple files if needed).
 
 ## Usage
 
@@ -13,10 +16,10 @@ import SourceMap
 SourceMap.empty
   |> SourceMap.withFile "elm.min.js"
   |> SourceMap.addMapping
-      { generatedLine = 1
+      { generatedLine = 3
       , generatedColumn = 10
       , source = "Main.elm"
-      , originalLine = 3
+      , originalLine = 10
       , originalColumn = 1
       , name = Just "init"
       }
@@ -32,7 +35,7 @@ SourceMap.empty
   "names": [
     "init"
   ],
-  "mappings": "UAECA",
+  "mappings": ";;UASCA",
   "file": "elm.min.js"
 }
 
