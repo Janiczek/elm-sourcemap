@@ -237,6 +237,7 @@ addMappings mappings sourceMap =
     SourceMap.empty
         |> SourceMap.withFile "source-mapped.js"
         |> SourceMap.addMapping (Mapping 10 35 "foo.js" 33 2 (Just "christopher"))
+        |> SourceMap.encode
 
     {-->
 
