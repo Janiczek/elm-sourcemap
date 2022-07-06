@@ -1,7 +1,7 @@
 {
     "type": "package",
     "name": "Janiczek/elm-sourcemap",
-    "summary": "Source Maps (revision 3)",
+    "summary": "A builder for Source Maps (revision 3)",
     "license": "Apache-2.0",
     "version": "1.0.0",
     "exposed-modules": [
