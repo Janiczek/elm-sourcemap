@@ -1,13 +1,24 @@
 module SourceMap exposing
-    ( SourceMap, empty, withFile
-    , Mapping, addMapping
+    ( SourceMap, empty, withFile, withSourceRoot
+    , Mapping, addMapping, addMappings
     , encode
     )
 
 {-|
 
-@docs SourceMap, empty, withFile
-@docs Mapping, addMapping
+
+# Creation
+
+@docs SourceMap, empty, withFile, withSourceRoot
+
+
+# Building
+
+@docs Mapping, addMapping, addMappings
+
+
+# Compiling
+
 @docs encode
 
 -}
@@ -25,12 +36,13 @@ import SourceMap.Segment as Segment exposing (Segment(..))
    We wouldn't have to sort everytime we encode.
 -}
 -- TODO add support for source contents
--- TODO add support for source root
+-- TODO add support for length-1 segments (different pieces of output pointing to the same input, stuff like `exports.add = add`)
 -- TODO benchmark whether it's better to append sources/names when adding a mapping or to cons and then reverse when encoding
 -- TODO is it really OK to create a list for _every_ line? What if there are 100000?
 
 
-{-| TODO write docs
+{-| Source Map is a collection of mappings from a generated (often minified) file
+to the original source code (across multiple files if needed).
 -}
 type SourceMap
     = SourceMap SourceMapData
@@ -38,6 +50,7 @@ type SourceMap
 
 type alias SourceMapData =
     { file : Maybe String
+    , sourceRoot : Maybe String
     , sources : List String
     , sourcesSet : Set String
     , names : List String
@@ -46,7 +59,16 @@ type alias SourceMapData =
     }
 
 
-{-| TODO write docs
+{-| Mapping points from the generated file to some original source code.
+
+The `source` field should, when prefixed with the SourceMap's `sourceRoot`, give
+a resolvable URL: the browser will try to reach it. (The spec also allows for
+embedding the source code in the source map, but support for that is currently
+TODO here.)
+
+The optional `name` field specifies what was the original name of the variable
+(it could be mangled or removed during compilation/minification).
+
 -}
 type alias Mapping =
     { generatedLine : Int
@@ -69,12 +91,29 @@ type alias MappingLine =
     List Segment
 
 
-{-| TODO write docs
+{-| Create an empty source map.
+
+    SourceMap.empty
+        |> SourceMap.encode
+        |> Encode.encode 2
+
+    {-->
+
+    {
+      "version": 3,
+      "sources": [],
+      "names": [],
+      "mappings": ""
+    }
+
+    -}
+
 -}
 empty : SourceMap
 empty =
     SourceMap
         { file = Nothing
+        , sourceRoot = Nothing
         , sources = []
         , sourcesSet = Set.empty
         , names = []
@@ -83,14 +122,63 @@ empty =
         }
 
 
-{-| TODO write docs
+{-| Add an output filename to a source map.
+
+    SourceMap.empty
+        |> SourceMap.withFile "hello.js"
+        |> SourceMap.encode
+        |> Encode.encode 2
+
+    {-->
+
+    {
+      "version": 3,
+      "sources": [],
+      "names": [],
+      "mappings": "",
+      "file": "hello.js"
+    }
+
+    -}
+
 -}
 withFile : String -> SourceMap -> SourceMap
 withFile file (SourceMap m) =
     SourceMap { m | file = Just file }
 
 
-{-| TODO write docs
+{-| Add a source root to a source map. This will be an automatic prefix to all
+the source paths mentioned in the mappings, and you can use paths relative to the
+root in all the added mappings.
+
+    SourceMap.empty
+        |> SourceMap.withSourceRoot "https://example.com/public/js/"
+        |> SourceMap.encode
+        |> Encode.encode 2
+
+    {-->
+
+    {
+      "version": 3,
+      "sources": [],
+      "names": [],
+      "mappings": "",
+      "sourceRoot": "https://example.com/public/js/"
+    }
+
+    -}
+
+-}
+withSourceRoot : String -> SourceMap -> SourceMap
+withSourceRoot sourceRoot (SourceMap m) =
+    SourceMap { m | sourceRoot = Just sourceRoot }
+
+
+{-| Add a mapping to the source map.
+
+    SourceMap.empty
+        |> SourceMap.addMapping (Mapping 10 35 "foo.js" 33 2 (Just "christopher"))
+
 -}
 addMapping : Mapping -> SourceMap -> SourceMap
 addMapping mapping (SourceMap m) =
@@ -133,7 +221,42 @@ addMapping mapping (SourceMap m) =
         }
 
 
-{-| TODO write docs
+{-| Add multiple mappings to the source map at once.
+
+    SourceMap.empty
+        |> SourceMap.addMappings
+            [ Mapping 1 1 "a.js" 2 2 (Just "foo")
+            , Mapping 3 3 "b.js" 4 4 (Just "bar")
+            ]
+
+-}
+addMappings : List Mapping -> SourceMap -> SourceMap
+addMappings mappings sourceMap =
+    List.foldl addMapping sourceMap mappings
+
+
+{-| Compile the source map into a JSON value.
+
+    SourceMap.empty
+        |> SourceMap.withFile "source-mapped.js"
+        |> SourceMap.addMapping (Mapping 10 35 "foo.js" 33 2 (Just "christopher"))
+
+    {-->
+
+    {
+      "version": 3,
+      "sources": [
+        "foo.js"
+      ],
+      "names": [
+        "christopher"
+      ],
+      "mappings": ";;;;;;;;;mCAgCEA",
+      "file": "source-mapped.js"
+    }
+
+    -}
+
 -}
 encode : SourceMap -> Encode.Value
 encode (SourceMap map) =
@@ -156,6 +279,7 @@ encode (SourceMap map) =
             |> Encode.string
         )
     , Encode.maybeField "file" Encode.string normalizedMap.file
+    , Encode.maybeField "sourceRoot" Encode.string normalizedMap.sourceRoot
     ]
         |> List.filterMap identity
         |> Encode.object
