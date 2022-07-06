@@ -51,7 +51,7 @@ type alias SourceMapData =
 type alias Mapping =
     { generatedLine : Int
     , generatedColumn : Int
-    , source : Maybe String
+    , source : String
     , originalLine : Int
     , originalColumn : Int
     , name : Maybe String
@@ -96,22 +96,6 @@ addMapping : Mapping -> SourceMap -> SourceMap
 addMapping mapping (SourceMap m) =
     let
         -- TODO abstract into ListSet module?
-        ( newSources, newSourcesSet ) =
-            case mapping.source of
-                Nothing ->
-                    ( m.sources, m.sourcesSet )
-
-                Just source ->
-                    if Set.member source m.sourcesSet then
-                        ( m.sources
-                        , m.sourcesSet
-                        )
-
-                    else
-                        ( source :: m.sources
-                        , Set.insert source m.sourcesSet
-                        )
-
         ( newNames, newNamesSet ) =
             case mapping.name of
                 Nothing ->
@@ -127,6 +111,17 @@ addMapping mapping (SourceMap m) =
                         ( name :: m.names
                         , Set.insert name m.namesSet
                         )
+
+        ( newSources, newSourcesSet ) =
+            if Set.member mapping.source m.sourcesSet then
+                ( m.sources
+                , m.sourcesSet
+                )
+
+            else
+                ( mapping.source :: m.sources
+                , Set.insert mapping.source m.sourcesSet
+                )
     in
     SourceMap
         { m
@@ -221,81 +216,61 @@ mappingLines m =
                     newPreviousGeneratedColumn =
                         mapping.generatedColumn
 
-                    ( segment, ( newPreviousSourceIndex, newPreviousOriginalLine, newPreviousOriginalColumn ), newPreviousNameIndex ) =
-                        case mapping.source of
+                    newPreviousSourceIndex : Int
+                    newPreviousSourceIndex =
+                        getIndex mapping.source sources
+
+                    segmentSourceIndex : Int
+                    segmentSourceIndex =
+                        newPreviousSourceIndex - acc.previousSourceIndex
+
+                    newPreviousOriginalLine : Int
+                    newPreviousOriginalLine =
+                        mapping.originalLine - 1
+
+                    newPreviousOriginalColumn : Int
+                    newPreviousOriginalColumn =
+                        mapping.originalColumn
+
+                    segmentOriginalStartLine : Int
+                    segmentOriginalStartLine =
+                        mapping.originalLine - 1 - acc.previousOriginalLine
+
+                    segmentOriginalStartColumn : Int
+                    segmentOriginalStartColumn =
+                        mapping.originalColumn - acc.previousOriginalColumn
+
+                    ( segment, newPreviousNameIndex ) =
+                        case mapping.name of
                             Nothing ->
-                                ( Col { generatedStartColumn = segmentGeneratedStartColumn }
-                                , ( acc.previousSourceIndex
-                                  , acc.previousOriginalLine
-                                  , acc.previousOriginalColumn
-                                  )
+                                ( ColSource
+                                    { generatedStartColumn = segmentGeneratedStartColumn
+                                    , sourceIndex = segmentSourceIndex
+                                    , originalStartLine = segmentOriginalStartLine
+                                    , originalStartColumn = segmentOriginalStartColumn
+                                    }
                                 , acc.previousNameIndex
                                 )
 
-                            Just source ->
+                            Just name ->
                                 let
-                                    sourceIndex : Int
-                                    sourceIndex =
-                                        getIndex source sources
+                                    nameIndex : Int
+                                    nameIndex =
+                                        getIndex name names
 
-                                    segmentSourceIndex : Int
-                                    segmentSourceIndex =
-                                        sourceIndex - acc.previousSourceIndex
-
-                                    previousOriginalLine : Int
-                                    previousOriginalLine =
-                                        mapping.originalLine - 1
-
-                                    previousOriginalColumn : Int
-                                    previousOriginalColumn =
-                                        mapping.originalColumn
-
-                                    segmentOriginalStartLine : Int
-                                    segmentOriginalStartLine =
-                                        mapping.originalLine - 1 - acc.previousOriginalLine
-
-                                    segmentOriginalStartColumn : Int
-                                    segmentOriginalStartColumn =
-                                        mapping.originalColumn - acc.previousOriginalColumn
+                                    segmentNameIndex : Int
+                                    segmentNameIndex =
+                                        nameIndex - acc.previousNameIndex
                                 in
-                                case mapping.name of
-                                    Nothing ->
-                                        ( ColSource
-                                            { generatedStartColumn = segmentGeneratedStartColumn
-                                            , sourceIndex = segmentSourceIndex
-                                            , originalStartLine = segmentOriginalStartLine
-                                            , originalStartColumn = segmentOriginalStartColumn
-                                            }
-                                        , ( sourceIndex
-                                          , previousOriginalLine
-                                          , previousOriginalColumn
-                                          )
-                                        , acc.previousNameIndex
-                                        )
-
-                                    Just name ->
-                                        let
-                                            nameIndex : Int
-                                            nameIndex =
-                                                getIndex name names
-
-                                            segmentNameIndex : Int
-                                            segmentNameIndex =
-                                                nameIndex - acc.previousNameIndex
-                                        in
-                                        ( ColSourceName
-                                            { generatedStartColumn = segmentGeneratedStartColumn
-                                            , sourceIndex = segmentSourceIndex
-                                            , originalStartLine = segmentOriginalStartLine
-                                            , originalStartColumn = segmentOriginalStartColumn
-                                            , nameIndex = segmentNameIndex
-                                            }
-                                        , ( sourceIndex
-                                          , previousOriginalLine
-                                          , previousOriginalColumn
-                                          )
-                                        , nameIndex
-                                        )
+                                ( ColSourceName
+                                    { generatedStartColumn = segmentGeneratedStartColumn
+                                    , sourceIndex = segmentSourceIndex
+                                    , originalStartLine = segmentOriginalStartLine
+                                    , originalStartColumn = segmentOriginalStartColumn
+                                    , nameIndex = segmentNameIndex
+                                    }
+                                , nameIndex
+                                )
 
                     newCurrentLine : MappingLine
                     newCurrentLine =
@@ -384,7 +359,7 @@ compareMapping a b =
     EQ
         |> retryIfEqual .generatedLine
         |> retryIfEqual .generatedColumn
-        |> retryIfEqualUsing compareMaybe .source
+        |> retryIfEqual .source
         |> retryIfEqual .originalLine
         |> retryIfEqual .originalColumn
         |> retryIfEqualUsing compareMaybe .name
