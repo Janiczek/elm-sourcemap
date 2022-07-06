@@ -10,7 +10,28 @@ suite : Test
 suite =
     Test.describe "SourceMap"
         [ Test.describe "encode"
-            [ Test.test "mozilla/source-map README consumer example source map" <|
+            [ Test.test "empty doesn't have `file` field" <|
+                \() ->
+                    SourceMap.empty
+                        |> SourceMap.encode
+                        |> Encode.encode 0
+                        |> Expect.equal """{"version":3,"sources":[],"names":[],"mappings":""}"""
+            , Test.test "withFile does have `file` field" <|
+                \() ->
+                    SourceMap.empty
+                        |> SourceMap.withFile "hello.js"
+                        |> SourceMap.encode
+                        |> Encode.encode 0
+                        |> Expect.equal """{"version":3,"sources":[],"names":[],"mappings":"","file":"hello.js"}"""
+            , Test.test "duplicate source/name" <|
+                \() ->
+                    SourceMap.empty
+                        |> SourceMap.addMapping (Mapping 1 1 (Just "a.js") 2 2 (Just "foo"))
+                        |> SourceMap.addMapping (Mapping 3 3 (Just "a.js") 4 4 (Just "foo"))
+                        |> SourceMap.encode
+                        |> Encode.encode 0
+                        |> Expect.equal """{"version":3,"sources":["a.js"],"names":["foo"],"mappings":"CACEA;;GAEEA"}"""
+            , Test.test "mozilla/source-map README consumer example source map" <|
                 \() ->
                     let
                         expectedJson : String

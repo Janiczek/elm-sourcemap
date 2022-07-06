@@ -1,14 +1,14 @@
 module SourceMap exposing
-    ( SourceMap, empty, withFile, addMapping
+    ( SourceMap, empty, withFile
+    , Mapping, addMapping
     , encode
-    , Mapping
     )
 
 {-|
 
-@docs SourceMap, empty, withFile, addMapping
+@docs SourceMap, empty, withFile
+@docs Mapping, addMapping
 @docs encode
-@docs Mapping
 
 -}
 
@@ -27,6 +27,7 @@ import SourceMap.Segment as Segment exposing (Segment(..))
 -- TODO add support for source contents
 -- TODO add support for source root
 -- TODO benchmark whether it's better to append sources/names when adding a mapping or to cons and then reverse when encoding
+-- TODO is it really OK to create a list for _every_ line? What if there are 100000?
 
 
 {-| TODO write docs
