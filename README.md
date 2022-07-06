@@ -21,7 +21,6 @@ SourceMap.empty
       , name = Just "init"
       }
   |> SourceMap.encode
-  |> Json.Encode.encode 2
 
 {-->
 

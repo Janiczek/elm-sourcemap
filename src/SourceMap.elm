@@ -95,7 +95,6 @@ type alias MappingLine =
 
     SourceMap.empty
         |> SourceMap.encode
-        |> Encode.encode 2
 
     {-->
 
@@ -127,7 +126,6 @@ empty =
     SourceMap.empty
         |> SourceMap.withFile "hello.js"
         |> SourceMap.encode
-        |> Encode.encode 2
 
     {-->
 
@@ -154,7 +152,6 @@ root in all the added mappings.
     SourceMap.empty
         |> SourceMap.withSourceRoot "https://example.com/public/js/"
         |> SourceMap.encode
-        |> Encode.encode 2
 
     {-->
 
