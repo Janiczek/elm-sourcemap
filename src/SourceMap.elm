@@ -69,6 +69,11 @@ TODO here.)
 The optional `name` field specifies what was the original name of the variable
 (it could be mangled or removed during compilation/minification).
 
+Note: all the lines and columns are supposed to be 1-based (which is what
+`elm/parser` functions `Parser.getRow`, `getCol` and `getPosition` will
+give you). The library will automatically convert them to the 0-based format
+required by the Source Map spec.
+
 -}
 type alias Mapping =
     { generatedLine : Int
@@ -352,15 +357,15 @@ mappingLines m =
 
                     newPreviousOriginalColumn : Int
                     newPreviousOriginalColumn =
-                        mapping.originalColumn
+                        mapping.originalColumn - 1
 
                     segmentOriginalStartLine : Int
                     segmentOriginalStartLine =
-                        mapping.originalLine - 1 - acc.previousOriginalLine
+                        mapping.originalLine - acc.previousOriginalLine - 1
 
                     segmentOriginalStartColumn : Int
                     segmentOriginalStartColumn =
-                        mapping.originalColumn - acc.previousOriginalColumn
+                        mapping.originalColumn - acc.previousOriginalColumn - 1
 
                     ( segment, newPreviousNameIndex ) =
                         case mapping.name of
@@ -438,7 +443,7 @@ initMappingState : MappingState
 initMappingState =
     { previousGeneratedColumn = 0
     , previousGeneratedLine = 1
-    , previousOriginalColumn = 0
+    , previousOriginalColumn = -1
     , previousOriginalLine = 0
     , previousNameIndex = 0
     , previousSourceIndex = 0
