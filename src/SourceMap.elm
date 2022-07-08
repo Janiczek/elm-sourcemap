@@ -254,7 +254,7 @@ addMappings mappings sourceMap =
 
     SourceMap.empty
         |> SourceMap.withFile "source-mapped.js"
-        |> SourceMap.addMapping (Mapping 10 35 "foo.js" 33 2 (Just "christopher"))
+        |> SourceMap.addMapping (Mapping 10 36 "foo.js" 33 3 (Just "christopher"))
         |> SourceMap.encode
 
     {-->
@@ -301,6 +301,30 @@ encode (SourceMap map) =
         |> Encode.object
 
 
+{-| Compile the source map into a stringified JSON.
+
+    SourceMap.empty
+        |> SourceMap.withFile "source-mapped.js"
+        |> SourceMap.addMapping (Mapping 10 36 "foo.js" 33 3 (Just "christopher"))
+        |> SourceMap.toString
+
+    {-->
+
+    {
+      "version": 3,
+      "sources": [
+        "foo.js"
+      ],
+      "names": [
+        "christopher"
+      ],
+      "mappings": ";;;;;;;;;mCAgCEA",
+      "file": "source-mapped.js"
+    }
+
+    -}
+
+-}
 toString : SourceMap -> String
 toString sourceMap =
     sourceMap
