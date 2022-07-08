@@ -1,7 +1,8 @@
 module SourceMap exposing
-    ( SourceMap, empty, withFile, withSourceRoot
+    ( SourceMap, empty
+    , withFile, withSourceRoot
     , Mapping, addMapping, addMappings
-    , encode
+    , encode, toString
     )
 
 {-|
@@ -9,17 +10,18 @@ module SourceMap exposing
 
 # Creation
 
-@docs SourceMap, empty, withFile, withSourceRoot
+@docs SourceMap, empty
 
 
 # Building
 
+@docs withFile, withSourceRoot
 @docs Mapping, addMapping, addMappings
 
 
 # Compiling
 
-@docs encode
+@docs encode, toString
 
 -}
 
@@ -215,12 +217,23 @@ addMapping mapping (SourceMap m) =
     in
     SourceMap
         { m
-            | mappings = mapping :: m.mappings
+            | mappings = normalizeMapping mapping :: m.mappings
             , sources = newSources
             , sourcesSet = newSourcesSet
             , names = newNames
             , namesSet = newNamesSet
         }
+
+
+{-| Convert columns from 1- to 0-based.
+Keep lines as 1-based (the algorithm we ported from mozilla/source-map depends on that).
+-}
+normalizeMapping : Mapping -> Mapping
+normalizeMapping m =
+    { m
+        | generatedColumn = m.generatedColumn - 1
+        , originalColumn = m.originalColumn - 1
+    }
 
 
 {-| Add multiple mappings to the source map at once.
@@ -286,6 +299,13 @@ encode (SourceMap map) =
     ]
         |> List.filterMap identity
         |> Encode.object
+
+
+toString : SourceMap -> String
+toString sourceMap =
+    sourceMap
+        |> encode
+        |> Encode.encode 2
 
 
 mappingLines : SourceMapData -> List MappingLine
@@ -357,7 +377,7 @@ mappingLines m =
 
                     newPreviousOriginalColumn : Int
                     newPreviousOriginalColumn =
-                        mapping.originalColumn - 1
+                        mapping.originalColumn
 
                     segmentOriginalStartLine : Int
                     segmentOriginalStartLine =
@@ -365,7 +385,7 @@ mappingLines m =
 
                     segmentOriginalStartColumn : Int
                     segmentOriginalStartColumn =
-                        mapping.originalColumn - acc.previousOriginalColumn - 1
+                        mapping.originalColumn - acc.previousOriginalColumn
 
                     ( segment, newPreviousNameIndex ) =
                         case mapping.name of
@@ -443,7 +463,7 @@ initMappingState : MappingState
 initMappingState =
     { previousGeneratedColumn = 0
     , previousGeneratedLine = 1
-    , previousOriginalColumn = -1
+    , previousOriginalColumn = 0
     , previousOriginalLine = 0
     , previousNameIndex = 0
     , previousSourceIndex = 0

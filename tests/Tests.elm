@@ -42,8 +42,8 @@ suite =
                 \() ->
                     SourceMap.empty
                         |> SourceMap.addMappings
-                            [ Mapping 1 1 "a.js" 2 2 (Just "foo")
-                            , Mapping 3 3 "a.js" 4 4 (Just "foo")
+                            [ Mapping 1 2 "a.js" 2 3 (Just "foo")
+                            , Mapping 3 4 "a.js" 4 5 (Just "foo")
                             ]
                         |> SourceMap.encode
                         |> Encode.encode 0
@@ -73,19 +73,19 @@ suite =
                             SourceMap.empty
                                 |> SourceMap.withFile "min.js"
                                 |> SourceMap.addMappings
-                                    [ Mapping 1 1 "http://example.com/www/js/one.js" 1 1 Nothing
-                                    , Mapping 1 5 "http://example.com/www/js/one.js" 1 5 Nothing
-                                    , Mapping 1 9 "http://example.com/www/js/one.js" 1 11 Nothing
-                                    , Mapping 1 18 "http://example.com/www/js/one.js" 1 21 (Just "bar")
-                                    , Mapping 1 21 "http://example.com/www/js/one.js" 2 3 Nothing
-                                    , Mapping 1 28 "http://example.com/www/js/one.js" 2 10 (Just "baz")
-                                    , Mapping 1 32 "http://example.com/www/js/one.js" 2 14 (Just "bar")
-                                    , Mapping 2 1 "http://example.com/www/js/two.js" 1 1 Nothing
-                                    , Mapping 2 5 "http://example.com/www/js/two.js" 1 5 Nothing
-                                    , Mapping 2 9 "http://example.com/www/js/two.js" 1 11 Nothing
-                                    , Mapping 2 18 "http://example.com/www/js/two.js" 1 21 (Just "n")
-                                    , Mapping 2 21 "http://example.com/www/js/two.js" 2 3 Nothing
-                                    , Mapping 2 28 "http://example.com/www/js/two.js" 2 10 (Just "n")
+                                    [ Mapping 1 2 "http://example.com/www/js/one.js" 1 2 Nothing
+                                    , Mapping 1 6 "http://example.com/www/js/one.js" 1 6 Nothing
+                                    , Mapping 1 10 "http://example.com/www/js/one.js" 1 12 Nothing
+                                    , Mapping 1 19 "http://example.com/www/js/one.js" 1 22 (Just "bar")
+                                    , Mapping 1 22 "http://example.com/www/js/one.js" 2 4 Nothing
+                                    , Mapping 1 29 "http://example.com/www/js/one.js" 2 11 (Just "baz")
+                                    , Mapping 1 33 "http://example.com/www/js/one.js" 2 15 (Just "bar")
+                                    , Mapping 2 2 "http://example.com/www/js/two.js" 1 2 Nothing
+                                    , Mapping 2 6 "http://example.com/www/js/two.js" 1 6 Nothing
+                                    , Mapping 2 10 "http://example.com/www/js/two.js" 1 12 Nothing
+                                    , Mapping 2 19 "http://example.com/www/js/two.js" 1 22 (Just "n")
+                                    , Mapping 2 22 "http://example.com/www/js/two.js" 2 4 Nothing
+                                    , Mapping 2 29 "http://example.com/www/js/two.js" 2 11 (Just "n")
                                     ]
                     in
                     sourceMap
@@ -113,7 +113,7 @@ suite =
                         sourceMap =
                             SourceMap.empty
                                 |> SourceMap.withFile "source-mapped.js"
-                                |> SourceMap.addMapping (Mapping 10 35 "foo.js" 33 2 (Just "christopher"))
+                                |> SourceMap.addMapping (Mapping 10 36 "foo.js" 33 3 (Just "christopher"))
                     in
                     sourceMap
                         |> SourceMap.encode
