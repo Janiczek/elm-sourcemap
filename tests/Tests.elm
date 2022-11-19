@@ -48,6 +48,46 @@ suite =
                         |> SourceMap.encode
                         |> Encode.encode 0
                         |> Expect.equal """{"version":3,"sources":["a.js"],"names":["foo"],"mappings":"CACEA;;GAEEA"}"""
+            , Test.test "some more duplicates (exercise the `compareMapping` fn)" <|
+                \() ->
+                    SourceMap.empty
+                        |> SourceMap.addMappings
+                            [ Mapping 1 2 "a.js" 2 3 (Just "foo")
+                            , Mapping 1 2 "a.js" 2 3 (Just "bar")
+                            ]
+                        |> SourceMap.encode
+                        |> Encode.encode 0
+                        |> Expect.equal """{"version":3,"sources":["a.js"],"names":["foo","bar"],"mappings":"CACEC,AAAAD"}"""
+            , Test.test "some more duplicates (exercise the `compareMapping` fn) 2" <|
+                \() ->
+                    SourceMap.empty
+                        |> SourceMap.addMappings
+                            [ Mapping 1 2 "a.js" 2 3 (Just "foo")
+                            , Mapping 1 2 "a.js" 2 3 Nothing
+                            ]
+                        |> SourceMap.encode
+                        |> Encode.encode 0
+                        |> Expect.equal """{"version":3,"sources":["a.js"],"names":["foo"],"mappings":"CACE,AAAAA"}"""
+            , Test.test "some more duplicates (exercise the `compareMapping` fn) 3" <|
+                \() ->
+                    SourceMap.empty
+                        |> SourceMap.addMappings
+                            [ Mapping 1 2 "a.js" 2 3 Nothing
+                            , Mapping 1 2 "a.js" 2 3 (Just "foo")
+                            ]
+                        |> SourceMap.encode
+                        |> Encode.encode 0
+                        |> Expect.equal """{"version":3,"sources":["a.js"],"names":["foo"],"mappings":"CACE,AAAAA"}"""
+            , Test.test "some more duplicates (exercise the `compareMapping` fn) 4" <|
+                \() ->
+                    SourceMap.empty
+                        |> SourceMap.addMappings
+                            [ Mapping 1 2 "a.js" 2 3 Nothing
+                            , Mapping 1 2 "a.js" 2 3 Nothing
+                            ]
+                        |> SourceMap.encode
+                        |> Encode.encode 0
+                        |> Expect.equal """{"version":3,"sources":["a.js"],"names":[],"mappings":"CACE,AAAA"}"""
             , Test.test "mozilla/source-map README consumer example source map" <|
                 \() ->
                     let
@@ -119,5 +159,17 @@ suite =
                         |> SourceMap.encode
                         |> Encode.encode 2
                         |> Expect.equal expectedJson
+            ]
+        , Test.describe "toString"
+            [ Test.test "example" <|
+                \() ->
+                    SourceMap.empty
+                        |> SourceMap.toString
+                        |> Expect.equal """{
+  "version": 3,
+  "sources": [],
+  "names": [],
+  "mappings": ""
+}"""
             ]
         ]
